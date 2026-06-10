@@ -3,127 +3,748 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>كاشف العملات الليبية</title>
+    <title>كاشف العملات الليبية - للمكفوفين وضعيفي البصر</title>
+
+    <!-- ===== ACCESSIBILITY META ===== -->
+    <meta name="description" content="تطبيق للتعرف على العملات الليبية باستخدام الذكاء الاصطناعي، مصمم خصيصاً للمكفوفين وضعيفي البصر">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #0d1f15; color: #e8f5ee; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 32px 16px; }
-        .container { width: 100%; max-width: 540px; display: flex; flex-direction: column; gap: 24px; }
-        .header { text-align: center; }
-        .header h1 { color: #f0b957; font-size: 26px; }
-        .upload-area { background: #122a1c; border: 2px dashed #2a5a3a; border-radius: 16px; padding: 32px; text-align: center; cursor: pointer; position: relative; }
-        .upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-        .preview-container { display: none; margin-top: 10px; border-radius: 14px; overflow: hidden; }
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg:         #0d1f15;
+            --surface:    #122a1c;
+            --border:     #2a5a3a;
+            --gold:       #f0b957;
+            --gold-dark:  #c8963e;
+            --green:      #2da865;
+            --green-dark: #1a7a4a;
+            --text:       #e8f5ee;
+            --muted:      #8bbfa0;
+            --focus:      #ffffff;
+            --error:      #ff6b6b;
+            --success:    #4ade80;
+            --font-size-base: 20px;   /* كبير للقراءة السهلة */
+            --font-size-lg:   26px;
+            --font-size-xl:   34px;
+            --font-size-sm:   17px;
+            --radius:     18px;
+            --gap:        24px;
+        }
+
+        /* ===== REDUCED MOTION ===== */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+        }
+
+        /* ===== HIGH CONTRAST MODE ===== */
+        @media (forced-colors: active) {
+            .detect-btn, .speak-btn, .upload-area { border: 3px solid ButtonText; }
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 32px 16px 60px;
+            font-size: var(--font-size-base);
+            line-height: 1.7;
+        }
+
+        /* ===== SKIP LINK (screen readers & keyboard) ===== */
+        .skip-link {
+            position: absolute;
+            top: -100px;
+            right: 16px;
+            background: var(--gold);
+            color: #000;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: var(--font-size-base);
+            z-index: 9999;
+            text-decoration: none;
+            transition: top 0.2s;
+        }
+        .skip-link:focus { top: 16px; }
+
+        /* ===== LIVE REGION for screen readers ===== */
+        #sr-announcer {
+            position: absolute;
+            width: 1px; height: 1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            white-space: nowrap;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 580px;
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap);
+        }
+
+        /* ===== HEADER ===== */
+        .header { text-align: center; padding: 8px 0; }
+
+        .header h1 {
+            color: var(--gold);
+            font-size: var(--font-size-xl);
+            font-weight: 800;
+            line-height: 1.3;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: var(--font-size-lg);
+            color: var(--muted);
+        }
+
+
+
+        /* ===== UPLOAD AREA ===== */
+        .upload-area {
+            background: var(--surface);
+            border: 3px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 40px 24px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            transition: border-color 0.2s, background 0.2s;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .upload-area:hover,
+        .upload-area:focus-within {
+            border-color: var(--green);
+            background: #163525;
+        }
+
+        /* واضح جداً للـ keyboard focus */
+        .upload-area:focus-within {
+            outline: 4px solid var(--focus);
+            outline-offset: 4px;
+        }
+
+        .upload-area input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .upload-icon { font-size: 52px; line-height: 1; color: var(--green); }
+
+        .upload-area h2 {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .upload-area p {
+            font-size: var(--font-size-sm);
+            color: var(--muted);
+        }
+
+        /* ===== STATUS BADGE ===== */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #1a3d28;
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            padding: 8px 18px;
+            font-size: var(--font-size-sm);
+            color: var(--muted);
+            margin-top: 4px;
+        }
+        .status-badge.ready   { border-color: var(--success); color: var(--success); }
+        .status-badge.loading { border-color: var(--gold);    color: var(--gold); }
+        .status-badge.error   { border-color: var(--error);   color: var(--error); }
+
+        /* ===== PREVIEW ===== */
+        .preview-container {
+            display: none;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 2px solid var(--border);
+            position: relative;
+        }
         .preview-container.show { display: block; }
-        .preview-container img { width: 100%; height: 220px; object-fit: cover; }
-        .detect-btn { width: 100%; background: linear-gradient(135deg, #1a7a4a, #2da865); color: white; border: none; border-radius: 14px; padding: 18px; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .detect-btn:disabled { opacity: 0.6; }
-        .result-card { display: none; background: #122a1c; border: 1px solid #2a5a3a; border-radius: 16px; padding: 20px; animation: fadeUp 0.4s; }
+        .preview-container img {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+            display: block;
+        }
+        .preview-label {
+            position: absolute;
+            bottom: 0; right: 0; left: 0;
+            background: rgba(13,31,21,0.85);
+            color: var(--muted);
+            font-size: var(--font-size-sm);
+            padding: 10px 16px;
+            text-align: center;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            width: 100%;
+            border: none;
+            border-radius: var(--radius);
+            padding: 22px 20px;
+            font-weight: 800;
+            cursor: pointer;
+            font-size: var(--font-size-lg);
+            font-family: inherit;
+            transition: opacity 0.2s, transform 0.1s, box-shadow 0.2s;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            letter-spacing: 0.02em;
+        }
+
+        /* focus ring واضح جداً لكل الأزرار */
+        .btn:focus-visible {
+            outline: 4px solid var(--focus);
+            outline-offset: 4px;
+        }
+
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+
+
+        .speak-btn {
+            background: transparent;
+            border: 3px solid var(--gold-dark);
+            color: var(--gold);
+            font-size: var(--font-size-base);
+            padding: 18px 20px;
+        }
+        .speak-btn:not(:disabled):hover { background: rgba(240,185,87,0.08); }
+
+        .upload-btn {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--muted);
+            font-size: var(--font-size-base);
+            padding: 16px 20px;
+        }
+        .upload-btn:hover { border-color: var(--green); color: var(--text); }
+
+        /* ===== RESULT CARD ===== */
+        .result-card {
+            display: none;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px 24px;
+            animation: fadeUp 0.35s ease;
+        }
         .result-card.show { display: block; }
-        .currency-name { font-size: 32px; color: #f0b957; margin-bottom: 10px; }
-        .speak-btn { width: 100%; background: transparent; border: 2px solid #c8963e; color: #f0b957; border-radius: 12px; padding: 14px; font-weight: bold; cursor: pointer; font-size: 15px; }
-        @keyframes fadeUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+        .result-card.success { border-color: var(--success); }
+        .result-card.failure { border-color: var(--error); }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-label {
+            font-size: var(--font-size-sm);
+            color: var(--muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .currency-name {
+            font-size: var(--font-size-xl);
+            color: var(--gold);
+            font-weight: 800;
+            line-height: 1.35;
+            margin-bottom: 14px;
+        }
+
+        .confidence-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .confidence-text {
+            font-size: var(--font-size-base);
+            color: var(--muted);
+            flex-shrink: 0;
+        }
+
+        /* شريط التقدم المرئي لنسبة الثقة */
+        .confidence-bar-wrap {
+            flex: 1;
+            height: 10px;
+            background: #1a3d28;
+            border-radius: 99px;
+            overflow: hidden;
+        }
+        .confidence-bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, var(--green-dark), var(--green));
+            width: 0%;
+            transition: width 0.6s ease;
+        }
+
+        /* ===== XAI SECTION ===== */
+        .xai-section {
+            display: none;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--border);
+        }
+        .xai-section.show { display: block; }
+
+        .xai-title {
+            font-size: var(--font-size-base);
+            color: var(--gold);
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .xai-img {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .xai-desc {
+            font-size: var(--font-size-sm);
+            color: var(--muted);
+            line-height: 1.7;
+            background: #0d2518;
+            border-radius: 10px;
+            padding: 14px 16px;
+        }
+
+        /* ===== FONT SIZE CONTROLS ===== */
+        .a11y-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 18px;
+            flex-wrap: wrap;
+        }
+
+        .a11y-label {
+            font-size: var(--font-size-sm);
+            color: var(--muted);
+            margin-left: auto; /* RTL: push to right */
+        }
+
+        .a11y-btn {
+            background: #1a3d28;
+            border: 2px solid var(--border);
+            color: var(--text);
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-size: var(--font-size-base);
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: border-color 0.15s;
+            min-width: 44px;
+            min-height: 44px;
+        }
+        .a11y-btn:hover { border-color: var(--green); }
+        .a11y-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+        .a11y-btn.active { border-color: var(--gold); color: var(--gold); }
+
+        /* ===== FONT AWESOME ICON SIZES ===== */
+        .header h1 .fa-circle-dollar-to-slot { font-size: 0.85em; color: var(--gold); }
+        .speak-btn .fa-volume-high,
+        .speak-btn .fa-pause { font-size: 1em; }
+        .upload-btn .fa-rotate-right { font-size: 1em; }
+        .xai-title .fa-brain { color: var(--gold); }
+
+        /* ===== SPINNER ===== */
+        .spinner {
+            display: inline-block;
+            width: 22px; height: 22px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            :root { --font-size-base: 18px; --font-size-lg: 22px; --font-size-xl: 28px; }
+            body { padding: 20px 12px 50px; }
+        }
     </style>
 </head>
 <body>
 
-<!-- وسم الصوت الترحيبي المضاف داخل الـ body -->
-<audio id="instructionAudio" src="/static/audio/intro.mp3"></audio>
+    <!-- Skip Navigation -->
+    <a href="#main-content" class="skip-link">انتقل للمحتوى الرئيسي</a>
 
-<div class="container">
-    <div class="header">
-        <h1>💵 كاشف العملات الليبية</h1>
-        <p>ارفع صورة للورقة النقدية للتعرف عليها</p>
-    </div>
+    <!-- Screen Reader Live Announcer -->
+    <div id="sr-announcer" aria-live="assertive" aria-atomic="true" role="status"></div>
 
-    <div class="upload-area">
-        <input type="file" accept="image/*" onchange="loadFile(this)">
-        <div style="font-size: 40px;">📷</div>
-        <h3>ارفع صورة العملة</h3>
-    </div>
+    <!-- Intro Audio -->
+    <audio id="instructionAudio" src="/static/audio/intro.mp3" aria-hidden="true"></audio>
 
-    <div class="preview-container" id="previewContainer">
-        <img id="previewImg" src="">
-    </div>
+    <main id="main-content" class="container" role="main">
 
-    <button class="detect-btn" id="detectBtn" onclick="detect()" disabled>🔍 تعرف على العملة</button>
+        <!-- Header -->
+        <header class="header" role="banner">
+            <h1><i class="fa-solid fa-circle-dollar-to-slot" aria-hidden="true"></i> كاشف العملات الليبية</h1>
+            <p>ارفع صورة للورقة النقدية للتعرف عليها بالصوت</p>
+        </header>
 
-    <div class="result-card" id="resultCard">
-        <h3>نتيجة الفحص:</h3>
-        <div class="currency-name" id="currencyName">—</div>
-        <div id="confidenceText" style="color: #8bbfa0; margin-bottom: 15px;"></div>
-        <button class="speak-btn" id="speakBtn" onclick="playAudio()">🔊 اسمع النتيجة</button>
-    </div>
-</div>
+        <!-- Accessibility Controls -->
+        <section aria-label="إعدادات إمكانية الوصول" class="a11y-bar">
+            <span class="a11y-label" id="fontSizeLabel">حجم الخط:</span>
+            <button class="a11y-btn" id="fontSmBtn"  onclick="setFontSize('sm')"  aria-label="حجم خط صغير"  aria-pressed="false">أ</button>
+            <button class="a11y-btn active" id="fontMdBtn" onclick="setFontSize('md')"  aria-label="حجم خط متوسط" aria-pressed="true">أأ</button>
+            <button class="a11y-btn" id="fontLgBtn"  onclick="setFontSize('lg')"  aria-label="حجم خط كبير"  aria-pressed="false">أأأ</button>
+            <button class="a11y-btn" id="fontXlBtn"  onclick="setFontSize('xl')"  aria-label="حجم خط كبير جداً" aria-pressed="false" style="font-size:22px">أأأأ</button>
+        </section>
 
-<script>
-let selectedFile = null;
-let currentAudioFile = "";
 
-// كود تشغيل الصوت الترحيبي تلقائياً عند تحميل الصفحة
-window.onload = function() {
-    const introAudio = document.getElementById('instructionAudio');
-    
-    introAudio.play().catch(function(error) {
-        console.log("المتصفح منع الصوت التلقائي، سيشتغل عند أول ضغطة للمستخدم.");
-        
-        // خطة بديلة: إذا منع المتصفح الصوت، يشتغل فوراً عند أول ضغطة في أي مكان بالصفحة
-        document.addEventListener('click', function() {
-            introAudio.play();
-        }, { once: true });
-    });
-};
 
-function loadFile(input) {
-    const file = input.files[0];
-    if (!file) return;
-    selectedFile = file;
-    const reader = new FileReader();
-    reader.onload = e => {
-        document.getElementById('previewImg').src = e.target.result;
-        document.getElementById('previewContainer').classList.add('show');
-        document.getElementById('detectBtn').disabled = false;
-        document.getElementById('resultCard').classList.remove('show');
-    };
-    reader.readAsDataURL(file);
-}
+        <!-- Upload Area -->
+        <section aria-label="رفع صورة العملة">
+            <div class="upload-area"
+                 role="button"
+                 tabindex="0"
+                 aria-label="اضغط لرفع صورة العملة. يمكنك أيضاً سحب وإفلات الصورة هنا"
+                 aria-describedby="uploadHint"
+                 onkeydown="handleUploadKey(event)">
+                <input type="file"
+                       id="fileInput"
+                       accept="image/*"
+                       capture="environment"
+                       onchange="loadFile(this)"
+                       aria-label="اختر صورة العملة من جهازك"
+                       tabindex="-1">
+                <div class="upload-icon" aria-hidden="true"><i class="fa-solid fa-camera"></i></div>
+                <h2>ارفع صورة العملة</h2>
+                <p id="uploadHint">صور JPEG أو PNG — يمكنك التصوير مباشرة من الكاميرا</p>
+                <div class="status-badge" id="uploadStatus" role="status" aria-live="polite">
+                    <span aria-hidden="true">○</span> في انتظار الصورة
+                </div>
+            </div>
+        </section>
 
-async function detect() {
-    const btn = document.getElementById('detectBtn');
-    btn.disabled = true;
-    btn.textContent = '⏳ ...';
+        <!-- Image Preview -->
+        <div class="preview-container" id="previewContainer" aria-hidden="true">
+            <img id="previewImg" src="" alt="معاينة الصورة المرفوعة">
+            <div class="preview-label">جارٍ التحليل تلقائياً...</div>
+        </div>
 
-    const formData = new FormData();
-    formData.append('image', selectedFile);
+        <!-- Result Card -->
+        <section class="result-card"
+                 id="resultCard"
+                 aria-label="نتيجة الفحص"
+                 aria-live="polite"
+                 tabindex="-1">
 
-    try {
-        const res = await fetch('/predict', { method: 'POST', body: formData });
-        const data = await res.json();
+            <p class="result-label">نتيجة الفحص</p>
+            <div class="currency-name" id="currencyName" role="heading" aria-level="2">—</div>
 
-        document.getElementById('currencyName').textContent = data.class;
-        document.getElementById('confidenceText').textContent = `نسبة الثقة: ${data.confidence}%`;
-        currentAudioFile = data.audio;
+            <div class="confidence-row" aria-label="نسبة الثقة">
+                <span class="confidence-text" id="confidenceText" aria-live="polite"></span>
+                <div class="confidence-bar-wrap" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="confBar" aria-label="شريط نسبة الثقة">
+                    <div class="confidence-bar-fill" id="confBarFill"></div>
+                </div>
+            </div>
 
-        document.getElementById('resultCard').classList.add('show');
-    } catch (err) {
-        alert("Error connecting to server");
-    } finally {
-        btn.disabled = false;
-        btn.textContent = '🔍 تعرف على العملة';
-    }
-}
+            <button class="btn speak-btn"
+                    id="speakBtn"
+                    onclick="playAudio()"
+                    aria-label="استمع إلى النتيجة بالصوت"
+                    disabled>
+                <span aria-hidden="true"><i class="fa-solid fa-volume-high"></i></span>
+                استمع للنتيجة
+            </button>
 
-function playAudio() {
-    if (!currentAudioFile) return;
-    const btn = document.getElementById('speakBtn');
-    const audio = new Audio(`/static/audio/${currentAudioFile}`);
+            <!-- XAI Section -->
+            <div class="xai-section" id="xaiSection" aria-label="تفسير قرار الذكاء الاصطناعي">
+                <p class="xai-title"><i class="fa-solid fa-brain" aria-hidden="true"></i> أين نظر الذكاء الاصطناعي؟</p>
+                <img class="xai-img"
+                     id="xaiImage"
+                     src=""
+                     alt="خريطة حرارية توضح المناطق التي ركّز عليها الذكاء الاصطناعي في الصورة. المناطق الحمراء والبرتقالية هي الأكثر تأثيراً في القرار">
+                <p class="xai-desc">
+                    <strong>شرح الخريطة:</strong> المناطق الملونة بالأحمر والبرتقالي هي التفاصيل التي ركّز عليها النموذج للتمييز بين فئات العملة الليبية. تساعد هذه الخريطة في فهم كيف توصّل الذكاء الاصطناعي لقراره.
+                </p>
+            </div>
+        </section>
 
-    btn.textContent = '⏳ ...';
-    audio.play();
+        <!-- Upload New Image Button (shown after result) -->
+        <button class="btn upload-btn"
+                id="resetBtn"
+                onclick="resetApp()"
+                style="display:none"
+                aria-label="ارفع صورة عملة جديدة وابدأ من جديد">
+            <i class="fa-solid fa-rotate-right" aria-hidden="true"></i> ارفع صورة أخرى
+        </button>
 
-    audio.onended = () => {
-        btn.textContent = '🔊 اسمع النتيجة';
-    };
-}
-</script>
+    </main>
+
+    <!-- Visually hidden helper class -->
+    <style>.sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }</style>
+
+    <script>
+        // ===== STATE =====
+        let selectedFile    = null;
+        let currentAudioFile = "";
+        let currentAudio    = null;
+
+        // ===== SCREEN READER ANNOUNCER =====
+        function announce(msg, priority = 'polite') {
+            const el = document.getElementById('sr-announcer');
+            el.setAttribute('aria-live', priority);
+            el.textContent = '';
+            // small delay to ensure re-announcement
+            setTimeout(() => { el.textContent = msg; }, 50);
+        }
+
+        // ===== FONT SIZE =====
+        const fontSizes = {
+            sm: { base:'16px', lg:'20px', xl:'26px' },
+            md: { base:'20px', lg:'26px', xl:'34px' },
+            lg: { base:'24px', lg:'30px', xl:'40px' },
+            xl: { base:'28px', lg:'36px', xl:'46px' }
+        };
+
+        function setFontSize(size) {
+            const s = fontSizes[size];
+            document.documentElement.style.setProperty('--font-size-base', s.base);
+            document.documentElement.style.setProperty('--font-size-lg',   s.lg);
+            document.documentElement.style.setProperty('--font-size-xl',   s.xl);
+            ['sm','md','lg','xl'].forEach(k => {
+                const btn = document.getElementById(`font${k.charAt(0).toUpperCase()+k.slice(1)}Btn`);
+                btn.classList.toggle('active', k === size);
+                btn.setAttribute('aria-pressed', k === size ? 'true' : 'false');
+            });
+            announce(`تم تغيير حجم الخط`);
+        }
+
+        // ===== UPLOAD KEY HANDLER =====
+        function handleUploadKey(e) {
+            if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('fileInput').click();
+            }
+        }
+
+        // ===== DRAG AND DROP =====
+        const uploadArea = document.querySelector('.upload-area');
+        uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.style.borderColor = 'var(--green)'; });
+        uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = ''; });
+        uploadArea.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '';
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                processFile(file);
+            } else {
+                announce('الملف المُسقَط ليس صورة. يرجى اختيار ملف صورة.', 'assertive');
+            }
+        });
+
+        // ===== LOAD FILE =====
+        function loadFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+            processFile(file);
+        }
+
+        function processFile(file) {
+            selectedFile = file;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = document.getElementById('previewImg');
+                img.src = e.target.result;
+                img.alt = `صورة العملة المرفوعة: ${file.name}`;
+
+                document.getElementById('previewContainer').classList.add('show');
+                document.getElementById('previewContainer').removeAttribute('aria-hidden');
+                document.getElementById('resultCard').classList.remove('show', 'success', 'failure');
+                document.getElementById('xaiSection').classList.remove('show');
+                document.getElementById('resetBtn').style.display = 'none';
+
+                setUploadStatus('loading', 'جارٍ التحليل...');
+                announce('تم رفع الصورة، جارٍ التحليل تلقائياً.', 'assertive');
+
+                // ابدأ التحليل مباشرة
+                detect();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function setUploadStatus(type, text) {
+            const badge = document.getElementById('uploadStatus');
+            badge.className = `status-badge ${type}`;
+            badge.textContent = text;
+        }
+
+        // ===== DETECT =====
+        let isDetecting = false;
+        async function detect() {
+            if (!selectedFile || isDetecting) return;
+            isDetecting = true;
+
+            setUploadStatus('loading', 'جارٍ التحليل...');
+            announce('جارٍ تحليل صورة العملة، يرجى الانتظار.', 'assertive');
+
+            const formData = new FormData();
+            formData.append('image', selectedFile);
+
+            try {
+                const res  = await fetch('/predict', { method: 'POST', body: formData });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+
+                document.getElementById('currencyName').textContent = data.class;
+                const conf = Math.round(data.confidence);
+                document.getElementById('confidenceText').textContent = `نسبة الثقة: ${conf}%`;
+
+                const fill = document.getElementById('confBarFill');
+                const bar  = document.getElementById('confBar');
+                setTimeout(() => { fill.style.width = conf + '%'; }, 100);
+                bar.setAttribute('aria-valuenow', conf);
+                bar.setAttribute('aria-label', `نسبة الثقة ${conf} بالمئة`);
+
+                currentAudioFile = data.audio;
+
+                const resultCard = document.getElementById('resultCard');
+                resultCard.classList.add('show');
+                resultCard.classList.add(conf >= 65 ? 'success' : 'failure');
+
+                if (data.explanation) {
+                    document.getElementById('xaiImage').src = data.explanation;
+                    document.getElementById('xaiSection').classList.add('show');
+                } else {
+                    document.getElementById('xaiSection').classList.remove('show');
+                }
+
+                document.getElementById('speakBtn').disabled = false;
+                document.getElementById('resetBtn').style.display = '';
+
+                announce(`النتيجة: ${data.class}. نسبة الثقة: ${conf} بالمئة.`, 'assertive');
+                setTimeout(() => { resultCard.focus(); }, 200);
+                if (currentAudioFile) setTimeout(() => playAudio(), 500);
+
+                setUploadStatus('ready', '✓ تم التحليل');
+
+            } catch (err) {
+                console.error(err);
+                setUploadStatus('error', '✗ خطأ في الاتصال');
+                announce('حدث خطأ في الاتصال بالسيرفر. يرجى المحاولة مرة أخرى.', 'assertive');
+            } finally {
+                isDetecting = false;
+            }
+        }
+
+        // ===== PLAY AUDIO =====
+        function playAudio() {
+            if (!currentAudioFile) return;
+
+            // Stop any playing audio
+            if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+
+            const btn = document.getElementById('speakBtn');
+            currentAudio = new Audio(`/static/audio/${currentAudioFile}`);
+
+            btn.innerHTML = '<i class="fa-solid fa-pause" aria-hidden="true"></i> جارٍ التشغيل...';
+            btn.setAttribute('aria-label', 'جارٍ تشغيل النتيجة الصوتية');
+            btn.disabled = true;
+
+            currentAudio.play().catch(e => {
+                console.error(e);
+                announce('تعذّر تشغيل الصوت.', 'assertive');
+            });
+
+            currentAudio.onended = () => {
+                btn.innerHTML = '<i class="fa-solid fa-volume-high" aria-hidden="true"></i> استمع للنتيجة';
+                btn.setAttribute('aria-label', 'استمع إلى النتيجة بالصوت');
+                btn.disabled = false;
+                announce('انتهى تشغيل النتيجة الصوتية.');
+            };
+        }
+
+        // ===== RESET =====
+        function resetApp() {
+            selectedFile     = null;
+            currentAudioFile = '';
+            if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+
+            document.getElementById('fileInput').value = '';
+            document.getElementById('previewContainer').classList.remove('show');
+            document.getElementById('previewContainer').setAttribute('aria-hidden', 'true');
+            document.getElementById('resultCard').classList.remove('show', 'success', 'failure');
+            document.getElementById('xaiSection').classList.remove('show');
+            document.getElementById('speakBtn').disabled = true;
+            document.getElementById('resetBtn').style.display = 'none';
+            document.getElementById('confBarFill').style.width = '0%';
+            setUploadStatus('', 'في انتظار الصورة');
+            announce('اضغط في أي مكان لالتقاط صورة جديدة.');
+        }
+
+
+
+        // ===== فتح الكاميرا عند أي ضغطة — دائماً =====
+        window.onload = function() {
+            const introAudio = document.getElementById('instructionAudio');
+            introAudio.play().catch(() => {});
+
+            document.addEventListener('click', function(e) {
+                // تجاهل الضغط على أزرار محددة (سماع النتيجة، حجم الخط، ارفع صورة أخرى)
+                const ignored = ['speakBtn','resetBtn','fontSmBtn','fontMdBtn','fontLgBtn','fontXlBtn'];
+                if (ignored.includes(e.target.id) || ignored.includes(e.target.closest('button')?.id)) return;
+
+                // لا تفتح الكاميرا إذا كان التحليل جارياً
+                if (isDetecting) return;
+
+                // شغّل الصوت التعريفي
+                introAudio.play().catch(() => {});
+
+                // أعد تعيين الحالة وافتح الكاميرا
+                selectedFile = null;
+                document.getElementById('fileInput').value = '';
+                document.getElementById('fileInput').click();
+            });
+        };
+    </script>
 </body>
 </html>

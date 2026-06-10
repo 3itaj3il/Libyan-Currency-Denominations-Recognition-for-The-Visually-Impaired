@@ -20,7 +20,7 @@ try:
     model = tf.keras.models.load_model(MODEL_PATH)
     print("✅ تم تحميل الموديل بنجاح!")
 except Exception as e:
-    print(f" خطأ في تحميل الموديل: {e}")
+    print(f"❌ خطأ في تحميل الموديل: {e}")
 
 CLASS_FOLDERS = [
     '10dinars_b', '10dinars_g', '1_dinar', '20dinars_n',
@@ -168,7 +168,7 @@ def predict():
             if not last_conv_layer_name:
                 last_conv_layer_name = 'Conv_1'  # اسم آخر conv في MobileNetV2
 
-            print(f" [XAI] تم التعرف التلقائي على الطبقة: {last_conv_layer_name}")
+            print(f"ℹ️ [XAI] تم التعرف التلقائي على الطبقة: {last_conv_layer_name}")
             
             # إنتاج الصورة المفسرة
             heatmap = make_gradcam_heatmap(img_array, target_model, last_conv_layer_name, pred_index=class_idx)
@@ -188,5 +188,7 @@ def predict():
 def audio(filename):
     return send_from_directory(AUDIO_DIR, filename)
 
+# التعديل الهام لمنصة Render لسحب الـ Port ديناميكياً
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
