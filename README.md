@@ -2,23 +2,23 @@
 
 ---
 
-# 📖 README.md
+#  README.md
 
 markdown
-# Libyan Currency Recognition for the Visually Impaired 🇱🇾👁️
+# Libyan Currency Recognition for the Visually Impaired 🇱🇾
 
 An end-to-end Assistive Technology application that leverages Artificial Intelligence to recognize Libyan currency denominations. Designed specifically with robust **Web Accessibility (A11y)** features, the application provides an instant audio-tactile response to assist blind and visually impaired individuals in handling daily financial transactions independently.
 
 ---
 
-## 🌟 Key Features
+##  Key Features
 
-### 🧠 Deep Learning Architecture & AI
+###  Deep Learning Architecture & AI
 * **Transfer Learning Engine:** Built on top of **MobileNetV2** (pre-trained on ImageNet) for rapid, resource-efficient edge-compatible classification.
 * **Dual-Stage Augmentation Pipeline:** Combines offline preprocessing scripts with live real-time training generators to simulate unpredictable real-world captures.
 * **Explainable AI (XAI):** Features a visual heatmap integration (Grad-CAM ready) allowing caretakers or developers to see exactly *where* the AI focused its attention to make a decision.
 
-### ♿ Accessibility-First Design (A11y)
+###  Accessibility-First Design (A11y)
 * **Omnipresent Camera Trigger:** Clicking anywhere on the screen immediately triggers the camera interface or file picker, eliminating the need to locate fine UI buttons visually.
 * **Screen Reader Optimization:** Integrated live regions via `aria-live="assertive"` for dynamic screen announcements at critical phases (e.g., uploading, analyzing, and final results).
 * **Scalable Typography:** Real-time font scaling capabilities through dedicated high-contrast controls to assist users with low-vision or partial sight.
@@ -26,7 +26,7 @@ An end-to-end Assistive Technology application that leverages Artificial Intelli
 
 ---
 
-## 🗂️ Project Structure
+##  Project Structure
 
 ```text
 ├── dataset_original/       # Raw collected currency images categorized by class
@@ -41,15 +41,15 @@ An end-to-end Assistive Technology application that leverages Artificial Intelli
 
 ---
 
-## 📊 Dataset & Augmentation Pipeline
+##  Dataset & Augmentation Pipeline
 
-### 🔗 Dataset Access
+###  Dataset Access
 
 The base image repository containing both initial collections and augmented variations can be accessed here:
 
-> 📂 **Dataset Link:** [first_dataset - Google Drive](https://www.google.com/search?q=https://drive.google.com/drive/folders/170gL6wV_2i2oD9P1vWl-F8f9-e_R2jM9%3Fusp%3Dsharing)
+>  **Dataset Link:** [first_dataset - Google Drive](https://drive.google.com/drive/folders/1_BMAtx0a6jETcTkbuxJnawYWBqfTtrym?usp=sharing)
 
-### 🔄 Preprocessing Strategy (`augment.py`)
+###  Preprocessing Strategy (`augment.py`)
 
 Because the application relies heavily on unstable camera pictures taken by visually impaired users, images are explicitly synthetically expanded by **20x (`SAMPLES_PER_IMAGE = 20`)** per original capture using structural and environment variances:
 
@@ -60,12 +60,12 @@ Because the application relies heavily on unstable camera pictures taken by visu
 
 ---
 
-## 🚀 Model Training Details (`train.py`)
+##  Model Training Details (`train.py`)
 
 The neural network is trained using **TensorFlow/Keras** with transfer learning optimizations.
 
 * **Base Network:** MobileNetV2 (Frozen ImageNet weights).
-* **Classifier Head:** Global Average Pooling 2D ➡️ Dropout Layer (30% rate) ➡️ Softmax Output Dense Layer (10 Class Categorization).
+* **Classifier Head:** Global Average Pooling 2D -> Dropout Layer (30% rate) -> Softmax Output Dense Layer (10 Class Categorization).
 * **Loss & Optimizer:** `Adam` Optimizer ($\text{Learning Rate} = 0.0001$) paired with `Categorical Crossentropy`.
 * **Live Data Generator:** Applies additional multi-directional adjustments (shear, shift, horizontal flips) during runtime training epochs.
 
@@ -79,7 +79,7 @@ python train.py
 
 ---
 
-## 🌐 Web Client Execution
+##  Web Client Execution
 
 The UI is built purely with accessibility mechanics, integrating direct hardware captures (`capture="environment"`), custom CSS scaling variables, and reactive sound feedback triggers.
 
@@ -104,12 +104,9 @@ gunicorn app:app
 
 ---
 
-## 🛠️ Technology Stack
+##  Technology Stack
 
 * **Machine Learning Core:** TensorFlow, NumPy, OpenCV, Pillow.
 * **Frontend Interfaces:** HTML5 (Semantic Structure), CSS3 (Flexbox/Grid/Variables), Vanilla JavaScript (A11y Event Observers).
 * **A11y Toolkit:** ARIA Live Regions, Screen-reader Assistive Utilities, Font-Awesome Icon kits.
 
-```
-
-```
