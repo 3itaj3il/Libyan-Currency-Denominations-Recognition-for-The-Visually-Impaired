@@ -4,7 +4,7 @@
 
 # 📖 README.md
 
-```markdown
+markdown
 # Libyan Currency Recognition for the Visually Impaired 🇱🇾👁️
 
 An end-to-end Assistive Technology application that leverages Artificial Intelligence to recognize Libyan currency denominations. Designed specifically with robust **Web Accessibility (A11y)** features, the application provides an instant audio-tactile response to assist blind and visually impaired individuals in handling daily financial transactions independently.
