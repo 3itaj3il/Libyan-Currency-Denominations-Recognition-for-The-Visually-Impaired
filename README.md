@@ -47,7 +47,7 @@ An end-to-end Assistive Technology application that leverages Artificial Intelli
 
 The base image repository containing both initial collections and augmented variations can be accessed here:
 
-> 📂 **Dataset Link:** [first_dataset - Google Drive](https://www.google.com/search?q=https://drive.google.com/drive/folders/170gL6wV_2i2oD9P1vWl-F8f9-e_R2jM9%3Fusp%3Dsharing) *(Replace with your actual public shareable URL link if necessary)*
+> 📂 **Dataset Link:** [first_dataset - Google Drive](https://www.google.com/search?q=https://drive.google.com/drive/folders/170gL6wV_2i2oD9P1vWl-F8f9-e_R2jM9%3Fusp%3Dsharing)
 
 ### 🔄 Preprocessing Strategy (`augment.py`)
 
